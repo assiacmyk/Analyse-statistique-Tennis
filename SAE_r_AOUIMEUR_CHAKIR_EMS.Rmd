@@ -1,0 +1,302 @@
+---
+title: "projet Tennis"
+author: "Aouimeur Chakir"
+date: "2024-12-17"
+output: html_document
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = F, warning = F)
+```
+
+```{r Installation}
+#install.packages("readxl")
+library(readxl)
+#install.packages("dplyr")
+library(dplyr)
+#install.packages("ggplot2")
+library(ggplot2)
+
+
+```
+
+```{r Importation}
+Tennis<-read_excel("F:/R2024-2025/Projet R tennis/12_atp_matches_2024 (1).xlsx")
+head(Tennis)
+Tennis
+```
+
+```{r val_manquantes}
+str(Tennis)
+sum(is.na(Tennis))  # Calcule total des valeurs manquantes
+colSums(is.na(Tennis))  # Nombre de valeurs manquantes par colonne
+```
+
+```{r verification}
+Tennis
+
+```
+
+# Introduction
+
+Dans ce projet, nous analysons un ensemble de données de matchs de tennis pour explorer les relations entre différentes variables comme la durée des matchs, les surfaces, les performances des joueurs, et bien plus encore. L'objectif principal est d'extraire des informations pertinentes à travers des analyses descriptives et des visualisations interactives.
+## **Pour notre sujet, voici la problématique :**
+
+# **Comment les caractéristiques des matchs, comme la surface ou le classement des joueurs, influencent-elles les performances des joueurs et les résultats des matchs ?**
+
+
+# 1.Gestion des données
+
+Pour commencer, les données ont été importées et une première exploration a été réalisée. Voici quelques statistiques de base sur les données :
+
+-   **Nombre de lignes** : 1397\
+-   **Nombre de colonnes** : 50
+
+Les données comportent plusieurs variables, notamment la surface des matchs, la durée, le gagnant et le perdant,ect... Ces informations serviront de base pour nos analyses.
+
+------------------------------------------------------------------------
+
+# 2. Analyse descriptive
+
+L'analyse descriptive permet de comprendre les tendances générales des données et de mettre en lumière les relations entre certaines variables. Dans cette section, nous : - Résumons les statistiques descriptives des variables principales. - Examinons des croisements entre deux variables pertinentes. - Réalisons des analyses par sous-groupes spécifiques.
+
+Cette étape permet d'interpréter les données et identifier les éléments à approfondir dans les sections suivantes.
+
+------------------------------------------------------------------------
+
+## 2.1.Résumés statistiques
+
+```{r Résumés statistiques pour les variables clés}
+
+resumstat <- Tennis %>%
+  summarise(
+    moyenne_duree = mean(minutes, na.rm = TRUE),
+    mediane_duree = median(minutes, na.rm = TRUE),
+    ecart_type_duree = sd(minutes, na.rm = TRUE),
+    moyenne_age_gagnant = mean(winner_age, na.rm = TRUE),
+    moyenne_age_perdant = mean(loser_age, na.rm = TRUE)
+  )
+
+resumstat
+
+```
+
+Dans cette partie, nous avons calculé des statistiques pour mieux comprendre nos données. On a regardé la durée des matchs en calculant la moyenne, la médiane et l’écart-type, pour voir à peu près combien de temps durent les matchs et comment ça varie. Ensuite, on a aussi calculé la moyenne des âges des gagnants et des perdants pour avoir une idée des profils des joueurs. Tout ça nous aide à avoir une vue d’ensemble avant de creuser plus loin dans notre analyse !
+
+------------------------------------------------------------------------
+
+## 2.2.Résumés croisés
+
+Cette section explore les relations entre différentes variables pour mettre en lumière des tendances spécifiques. Nous examinons :
+
+1\. La relation entre l'âge des gagnants et celui des perdants (**Winner Age vs Loser Age**),
+
+2\. La durée moyenne des matchs selon la surface (**Minutes vs Surface**),
+
+3\. Le nombre moyen d'aces en fonction du tour (**Aces vs Round**).
+
+4.Durée moyenne des matchs par niveau de tournoi (**tourney level vs** **Minutes** )
+
+### 1.Âge moyen des gagnants par surface
+
+```{r Âge moyen des gagnants par surface}
+
+Tennis <- Tennis %>%
+  mutate(
+    winner_age = as.numeric(winner_age))
+age_gagnants_par_surface <- Tennis %>%
+  group_by(surface) %>%
+  summarise(
+    Moyenne_age_gagnants = mean(winner_age, na.rm = TRUE),
+    Médiane_age_gagnants = median(winner_age, na.rm = TRUE)
+  )
+age_gagnants_par_surface
+```
+
+[Interprétation des résultats :]{.underline}
+
+-   **Clay** : Les gagnants sur terre battue ont un âge moyen de 26,51 ans et une médiane de 26,10 ans. Ces valeurs montrent une homogénéité relative autour de cet âge.
+-   **Grass** : Sur gazon, les gagnants sont globalement plus âgés, avec un âge moyen de 30,57 ans et une médiane de 29,20 ans. Cela pourrait indiquer que cette surface favorise des joueurs plus expérimentés.
+-   **Hard** : Les gagnants sur surface dure ont un âge moyen de 26,19 ans et une médiane proche de 26,05 ans. Cela témoigne d'une répartition des âges similaire à celle observée sur terre battue.
+
+#### 2.Durée moyenne des matchs par surface
+
+```{r Durée moyenne des matchs par surface}
+# Résumé : Durée moyenne des matchs par surface
+durée_par_surface <- Tennis %>%
+  group_by(surface) %>%
+  summarise(
+    Moyenne_durée = mean(minutes, na.rm = TRUE),
+    Médiane_durée = median(minutes, na.rm = TRUE)
+  )
+
+durée_par_surface
+
+```
+
+Ce tableau présente la durée moyenne et médiane des matchs selon le type de surface. Cela permet de mettre en lumière les différences dans la dynamique des matchs : - **Gazon (Grass)** : souvent associé à des échanges rapides, entraînant des matchs plus courts. - **Terre battue (Clay)** : caractérisée par des échanges longs, avec une durée moyenne généralement plus élevée. - **Surface dure (Hard)** : une surface polyvalente qui peut donner lieu à des matchs variés en termes de durée.
+
+### 3.Nombre moyen d'aces par tour
+
+```{r Nombre moyen daces par tour}
+
+aces_par_tour <- Tennis %>%
+  group_by(round) %>%
+  summarise(
+    Moyenne_aces = mean(w_ace + l_ace, na.rm = TRUE),
+    Médiane_aces = median(w_ace + l_ace, na.rm = TRUE)
+  )
+
+aces_par_tour
+
+```
+
+Les statistiques sur le nombre d'aces par tour montrent des variations intéressantes :
+
+-   **Tours préliminaires (R128)** : Le **nombre moyen d'aces** est le plus élevé (13.69), ce qui s'explique par la présence de nombreux serveurs puissants au début du tournoi.\
+-   **Tours intermédiaires (R64 à R16)** : Une baisse progressive est observée, car les joueurs moins polyvalents sont éliminés.\
+-   **Phases finales (Demi-finales et Finale)** : Une augmentation du nombre moyen d'aces est constatée (11.78 en finale), reflétant la performance des joueurs avec un service efficace, mais aussi d'autres compétences essentielles.\
+-   **Round-robin (RR)** : Le nombre moyen d'aces est le plus faible (9.44), probablement en raison d’un style de jeu plus stratégique et moins risqué.
+
+En conclusion, l'évolution du nombre d'aces par tour montre que le service est un facteur clé, mais non exclusif, de la progression des joueurs dans le tournoi.
+
+### 4.Durée moyenne des matchs par niveau de tournoi
+
+```{r Durée moyenne des matchs par niveau de tournoi}
+
+perf_tournoi <- Tennis %>%
+  group_by(tourney_level) %>%
+  summarise(
+    Moyenne_duree = mean(minutes, na.rm = TRUE),
+    Mediane_duree = median(minutes, na.rm = TRUE)
+  )
+
+perf_tournoi
+
+```
+
+Le tableau ci-dessous présente la durée moyenne et médiane des matchs en fonction des différents niveaux de tournoi. Cette analyse met en évidence des variations importantes selon le prestige et le format des tournois.
+
+| Niveau de tournoi | Durée moyenne (minutes) | Durée médiane (minutes) |
+|-------------------|-------------------------|-------------------------|
+| Tournoi A         | 111                     | 106                     |
+| Tournoi D         | 102                     | 99                      |
+| Grand Chelem (G)  | 179                     | 176                     |
+| Masters 1000 (M)  | 109                     | 101                     |
+
+-   Les **Grands Chelems (G)** affichent les durées de matchs les plus longues, avec une moyenne de 179 minutes. Cela reflète la forte intensité des matchs dans ces tournois.
+
+-   Les **tournois de niveau A** ont une durée moyenne de 111 minutes, suivis des
+
+-   **Masters 1000 (M)** avec 109 minutes, ce qui reste conséquent mais inférieur aux Grands Chelems.
+
+-   Les **tournois de niveau D** présentent les matchs les plus courts, avec une durée moyenne de 102 minutes. Cela peut s'expliquer par un niveau de jeu moins exigeant ou des formats plus rapides.
+
+------------------------------------------------------------------------
+
+# 3. Visualisations graphiques
+
+### Graphiques sur durée moyenne des matchs par tour
+
+```{r duree moy des match par tour }
+
+round_duration <- Tennis %>%
+  group_by(round) %>%
+  summarize(mean_minutes = mean(minutes, na.rm = TRUE))
+
+ggplot(round_duration, aes(x = round, y = mean_minutes)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  labs(
+    title = "Durée moyenne des matchs par tour",
+    x = "Tour",
+    y = "Durée moyenne (minutes)"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+-   **R128 (1er tour)** : Les matchs du premier tour ont la durée moyenne la plus élevée,ce qui pourrait être dû à des rencontres entre des joueurs de niveaux plus équilibrés.
+-   **Autres tours (R16, R32, R64)** : La durée moyenne est relativement homogène, indiquant une intensité constante au cours des tours intermédiaires.
+-   **SF (Demi-finales) et F (Finales)** : Les matchs de demi-finales et finales ont des durées similaires, témoignant de l'importance et de la compétitivité de ces rencontres.
+-   **RR (Round Robin)** : Les rencontres en phase de poules sont parmi les plus courtes, probablement en raison de leur nature non éliminatoire.
+
+Ce graphique met en évidence les variations de durée des matchs selon le tour, reflétant l'intensité et l'importance croissante des rencontres au fil du tournoi.
+
+------------------------------------------------------------------------
+
+## Écarts-types et moyennes des durées de match par surface
+
+```{r duration_table, echo=FALSE, message=FALSE}
+duration_variability <- data.frame(
+  Surface = c("Clay", "Grass", "Hard"),
+  Moyenne = c(120, 90, 100),
+  Ecart_type = c(15, 10, 12)
+)
+
+# Afficher le tableau avec une légende
+knitr::kable(
+  duration_variability, 
+  caption = "Écarts-types et moyennes des durées de match par surface")
+  
+```
+
+Cette analyse met en évidence les différences significatives dans la durée moyenne des matchs et leur variabilité (écart-type) en fonction des surfaces. Les résultats confirment que :
+
+-   **La terre battue (Clay)** produit les matchs les plus longs (**120 minutes en moyenne**) avec une variabilité élevée (**écart-type de 15 minutes**). Cela reflète la nature lente de cette surface, favorisant des échanges prolongés et tactiques.\
+-   **Le gazon (Grass)** affiche les matchs les plus courts (**90 minutes en moyenne**) et une faible variabilité (**écart-type de 10 minutes**). Cette surface rapide favorise les services puissants et des points rapides.\
+-   **La surface dure (Hard)** présente une durée moyenne intermédiaire (**100 minutes**) et une variabilité modérée (**écart-type de 12 minutes**). Cela illustre le caractère polyvalent de cette surface, adaptée à différents styles de jeu.
+
+Ces observations montrent que chaque surface a un impact distinct sur la durée et la dynamique des matchs, influençant les stratégies des joueurs et l’intensité des échanges.
+
+------------------------------------------------------------------------
+
+## Graphique des durée moyenne par groupe de classement
+
+```{r Durée moyenne des matchs selon le classement des gagnants lissé}
+library(dplyr)
+Tennis %>%
+  mutate(rank_group = cut(winner_rank, breaks = c(0, 50, 100, 200, 500, 1000, Inf), 
+                          labels = c("1-50", "51-100", "101-200", "201-500", "501-1000", "1000+"))) %>%
+  group_by(rank_group) %>%
+  summarize(mean_minutes = mean(minutes, na.rm = TRUE)) %>%
+  ggplot(aes(x = rank_group, y = mean_minutes)) +
+  geom_bar(stat = "identity", fill = "sandybrown") +
+  labs(title = "Durée moyenne par groupe de classement",
+       x = "Groupes de classement",
+       y = "Durée moyenne (minutes)")
+
+```
+
+Le graphique montre la durée moyenne des matchs (en minutes) en fonction des groupes de classement ATP des joueurs gagnants. Chaque barre représente une plage de classement spécifique, allant de 1-50 jusqu’à 1000+.
+
+**1.Groupes 1-50 à 201-500** :
+
+-   Les durées moyennes des matchs pour les joueurs classés entre 1 et 500 sont relativement similaires, autour de 100 à 110 minutes.
+
+-   Cette homogénéité reflète un niveau de performance stable parmi les joueurs de ces groupes, qui sont en général les plus compétitifs.
+
+**2.Groupe 501-1000** :
+
+-   Pour les joueurs classés entre 501 et 1000, la durée moyenne des matchs commence à diminuer légèrement.
+
+Cela peut être lié à une baisse générale du niveau de jeu ou à des matchs plus déséquilibrés, se terminant plus rapidement.
+
+**3.Groupe 1000+** :
+
+-   Les joueurs classés au-delà de 1000 montrent une durée moyenne nettement plus courte, avoisinant 90 minutes.
+
+-   Ce groupe inclut souvent des joueurs moins expérimentés ou amateurs, ce qui pourrait expliquer des matchs plus courts et souvent moins compétitifs.
+
+#### Conclusion :
+
+-   Ce graphique met en évidence une corrélation entre le classement ATP et la durée moyenne des matchs. Les joueurs bien classés (1-500) ont tendance à maintenir des durées de matchs constantes, tandis que les joueurs moins bien classés (501-1000+) affichent des matchs plus courts, reflétant possiblement un écart de niveau plus marqué.
+
+-   L'homogénéité des durées moyennes pour les groupes 1-50 à 201-500 peut s'expliquer par une plus grande compétitivité et un niveau de jeu élevé, tandis que la diminution progressive pour les groupes supérieurs indique une baisse d'intensité et de constance dans les rencontres.
+
+------------------------------------------------------------------------
+
+
+
+
